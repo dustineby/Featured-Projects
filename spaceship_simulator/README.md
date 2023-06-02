@@ -1,6 +1,6 @@
 # Spaceship Simulator
 
-
+Final project for a data structures class, this project implements a quad tree (also made) to store randomly egnerated clusters of planets. The entire "generated galaxy" is shown in one panel, another panel shows a player-controlled rocket ship and nearby planets. Collision turns planets yellow. The view is smoother than the gifs show. 
 
 # Demo
 
