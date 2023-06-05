@@ -1,6 +1,6 @@
 # Singular Value Decomposition widget
 
-A small jupyter notebook using numpy and pyplot to visualize principal component analysis (PCA) via singular value decomposition (SVD). It takes in any image, converts it to greyscale, then stores greyscale values in a numpy array. SVD is run on this array to obtain factorization matrices. In the last cell, a k value can be changed to perform PCA with the most imformation-dense k eigenvectors, which are then recombined to show the refactored image.
+A small jupyter notebook using numpy and pyplot to visualize principal component analysis (PCA) via singular value decomposition (SVD). It takes in any image, converts it to greyscale, then stores greyscale values in a numpy array. SVD is run on this array to obtain factorization matrices. In the last cell, a k value is chosen to perform PCA with the most information-dense k eigenvectors, which are then refactored to show the compressed image.
 
 # Demo
 
