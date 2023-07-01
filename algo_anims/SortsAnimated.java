@@ -4,7 +4,7 @@ import edu.du.dudraw.DUDraw;
 
 /* README
  * A simple animation of some common sorting algorithms, to aid in intuitive understanding of how they work
- * Sorting algorithms included are: Selection Sort, Insertion Sort, Merge Sort, and Quick Sort
+ * Sorting algorithms included are: Bubble Sort, Insertion Sort, Selection Sort, Merge Sort, Quick Sort, & Heap Sort
  * The sort method can be changed on line 36
  * All are animated via the draw_arr method, so the delay between animation updates can be changed on line 69 for all sorts
  * Number of items to sort can be changed on line 20, though the program is designed for n = 31 so any edge cases for other sizes have not been accounted for
@@ -22,18 +22,18 @@ public class SortsAnimated {
 		
 		// prep the canvas with some liquid white
 		// and set other initial conditions for the canvas
-    	DUDraw.setCanvasSize(canvas, canvas / 2);
-    	DUDraw.setScale(0, canvas);
-     	DUDraw.setPenRadius(1);
-     	DUDraw.enableDoubleBuffering();
+    		DUDraw.setCanvasSize(canvas, canvas / 2);
+    		DUDraw.setScale(0, canvas);
+     		DUDraw.setPenRadius(1);
+     		DUDraw.enableDoubleBuffering();
     	
-     	// make an array of ints to sort
+     		// make an array of ints to sort
 		int list[] = make_arr(n, n * 10);
 		
 		// sort them, width must be passed to have them spaced neatly on the canvas
 		// choices of:
-		// selection_sort, insertion)sort, merge_sort, or quick_sort
-		insertion_sort(list, width);
+		// bubble_sort, insertion_sort, selection_sort, merge_sort, quick_sort, or heap_sort
+		heap_sort(list, width);
 	}
 
 	// create a sorted array of size n
@@ -69,6 +69,60 @@ public class SortsAnimated {
 		DUDraw.pause(250);
 	}
 	
+	// bubble sort method
+	public static void bubble_sort(int[] ints, int width) {
+	    // find length
+	    int n = ints.length;
+	    
+	    // iterate over the array
+	    for (int i = 0; i < n - 1; i++) {
+	        boolean swapped = false;
+	        
+	        // iterate from the beginning up to n - i - 1
+	        // since the largest element will be bubbled to the end in each iteration
+	        for (int j = 0; j < n - i - 1; j++) {
+	            // check if the current element is greater than the next element
+	            if (ints[j] > ints[j + 1]) {
+	                // swap the elements
+	                int temp = ints[j];
+	                ints[j] = ints[j + 1];
+	                ints[j + 1] = temp;
+	                swapped = true;
+	            }
+	        }
+	        
+	        // if no elements were swapped in the inner loop,
+	        // it means the array is already sorted, so we can stop
+	        if (!swapped) {
+	            break;
+	        }
+	        
+	        draw_arr(ints, width);
+	    }
+	}
+	
+	// insertion sort method
+	public static void insertion_sort(int[] ints, int width) {
+		// find length
+		int n = ints.length;
+		// iterate over the array starting at the 2nd element
+		for (int i = 1; i < n; i++) {
+			// set key to current index's value
+			int key = ints[i];
+			// check key vs value below it
+			int j = i - 1;
+			// keep going until we find a value lower than key
+			while (j >= 0 && ints[j] > key) {
+				ints[j + 1] = ints[j];
+				j = j - 1;
+			}
+			// then swap index and the index of the value right before that lower value
+			ints[j + 1] = key;
+			
+			draw_arr(ints, width);
+		}
+	}
+	
 	// selection sort method
 	public static void selection_sort(int[] ints, int width) {
 		// find length
@@ -94,29 +148,7 @@ public class SortsAnimated {
 			draw_arr(ints, width);
 		}
 	}
-	
-	// insertion sort method
-	public static void insertion_sort(int[] ints, int width) {
-		// find length
-		int n = ints.length;
-		// iterate over the array
-		for (int i = 1; i < n; i++) {
-			// set key to current index's value
-			int key = ints[i];
-			// check key vs value below it
-			int j = i - 1;
-			// keep going until we find a value lower than key
-			while (j >= 0 && ints[j] > key) {
-				ints[j + 1] = ints[j];
-				j = j - 1;
-			}
-			// then swap index and the index of the value right before that lower value
-			ints[j + 1] = key;
-			
-			draw_arr(ints, width);
-		}
-	}
-	
+
 	// merge sort main method
 	public static void merge_sort(int[] ints, int width) {
 		// set low and high indices, then call the recursive method
@@ -267,4 +299,61 @@ public class SortsAnimated {
 		return i;
 	}
 	
+	// heap sort main method
+	public static void heap_sort(int[] arr, int width) {
+        int n = arr.length;
+
+        // Build max heap
+        for (int i = n / 2 - 1; i >= 0; i--) {
+            heapify(arr, n, i, width);
+        }
+
+        // Extract elements from the heap one by one
+        for (int i = n - 1; i > 0; i--) {
+            // Swap the root (maximum element) with the last element
+            int temp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = temp;
+
+            // Heapify the reduced heap
+            heapify(arr, i, 0, width);
+        }
+        
+        draw_arr(arr, width);
+        
+    }
+	
+	// heap sort heapify method
+	private static void heapify(int[] arr, int n, int i, int width) {
+        // largest is root
+		int largest = i; 
+		// left child
+        int left = 2 * i + 1;
+        // right child
+        int right = 2 * i + 2;
+
+        // If left child is larger than root
+        if (left < n && arr[left] > arr[largest]) {
+            largest = left;
+        }
+
+        // If right child is larger than largest so far
+        if (right < n && arr[right] > arr[largest]) {
+            largest = right;
+        }
+
+        draw_arr(arr, width);
+        
+        // If largest is not root
+        if (largest != i) {
+            // Swap elements
+            int temp = arr[i];
+            arr[i] = arr[largest];
+            arr[largest] = temp;
+            
+            // Recursively heapify the affected sub-tree
+            heapify(arr, n, largest, width);
+        }
+    }
+
 }
