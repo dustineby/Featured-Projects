@@ -20,3 +20,12 @@ pub fn parse_asm(asm_line: &str) -> Option<Instruction> {
         None => None
     }
 }
+
+
+pub fn write_bin(inst: Instruction) -> (u16) {
+    match inst {
+        Instruction::AInstruction(addr) => instructions::write_addr(addr),
+        Instruction::CInstruction{dest,comp,jump} => 
+            instructions::write_cmd(dest.as_deref(),&comp,jump.as_deref())
+    }
+}
