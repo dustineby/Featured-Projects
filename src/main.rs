@@ -5,54 +5,41 @@ use std::fs;
 use parser::*;
 use std::io::{BufWriter, Write};
 use std::path::Path;
+use anyhow::{Result, anyhow};
 
 // main fn
-fn main() {
+fn main()  -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {
-        eprintln!("Incorrect args");
-        return;
+       return Err(anyhow!("Invalid argument count"));
     }
 
+    // grab passed .asm file, create new .bin file and writer
     let input_file = &args[1];
-    let output_file = input_file.replace(".asm", ".bin");
+    let output_name = input_file.replace(".asm", ".bin");
+    let mut output_file = fs::File::create(output_name)?;
 
+    // read .asm file and turn into vector of lines, with empty lines and comments removed
     let asm_code = fs::read_to_string(input_file).expect("Failed to read input file");
-
     let asm_lines: Vec<String> = asm_code.lines()
         .filter(|line| !line.is_empty() && !line.starts_with("//"))
         .map(String::from)
         .collect();
 
-    for asm in asm_lines {
-
+    // iterate over vector of lines, paring and then writing each
+    for line in &asm_lines {
+        match parser::parse_asm(line) {
+            Ok(next_instruction) => {
+                let bin_line = parser::write_bin(next_instruction);
+                println!("{:016b}", bin_line);
+                writeln!(output_file, "{:016b}", bin_line);
+            }
+            Err(e) => {
+                println!("error: {}", e);
+            }
+        }
     }
 
-    
-    // let test_line = parser::parse_asm(&asm_lines[0]);
-
-    // println!("{:?}", test_line);
-
-    // let test_bin = parser::write_bin(test_line.expect("reason"));
-
-    // println!("{:#016b}", test_bin);
-}
-
-// Writer, could use std::io's BufWriter to buffer writes and call flush to write them all at once
-// But we expect all of our test cases to be simple enough that single write calls are ok
-fn write_bin(output_path: &Path, instructions: &[u16]) -> std::io::Result<()> {
-    let file = File::create(output_path)?;
-    let mut writer = BufWriter::new(file);
-    
-    for &instruction in instructions {
-        writer.write_all(&instruction.to_be_bytes())?;
-    }
-    
-    writer.flush()?;
     Ok(())
-}
 
-fn write_bin(output_path: &Path, instructions: &[u16]) -> std::io::Result<()> {
-    fs::write("filename.txt", "Hello, world!")?;
-    Ok(())
 }
