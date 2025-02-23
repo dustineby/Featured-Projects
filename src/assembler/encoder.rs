@@ -1,40 +1,29 @@
 use super::Instruction;
 
-// AInstruction
-pub fn parse_addr(line: &str) -> Instruction {
-    let value = line[1..].parse::<u16>();
-    Instruction::AInstruction(value.expect("Err23"))
+
+pub fn encode_bin(inst: Instruction) -> u16 {
+    match inst {
+        Instruction::AInstruction(addr) => encode_addr(addr),
+        Instruction::CInstruction{dest,comp,jump} => 
+            encode_cmd(dest.as_deref(),&comp,jump.as_deref())
+    }
 }
 
-pub fn write_addr(addr: u16) -> u16 {
+
+pub fn encode_addr(addr: u16) -> u16 {
     0b0000_0000_0000_0000 | addr
 }
 
 
-// CInstruction
-pub fn parse_cmd(line: &str) -> Instruction {
-
-    let (dest, rest) = match line.split_once('=') {
-        Some((dest, rest)) => (Some(dest.to_string()), rest),
-        None => (None, line),
-    };
-
-    let (comp, jump) = match rest.split_once(';') {
-        Some((comp, jump)) => (comp.to_string(), Some(jump.to_string())),
-        None => (rest.to_string(), None),
-    };
-
-    Instruction::CInstruction { dest, comp, jump }
-}
-
-pub fn write_cmd(dest: Option<&str>, comp: &str, jump: Option<&str>) -> u16 {
-    let dest_bits = write_dest(dest);
-    let comp_bits = write_comp(comp);
-    let jump_bits = write_jump(jump);
+pub fn encode_cmd(dest: Option<&str>, comp: &str, jump: Option<&str>) -> u16 {
+    let dest_bits = encode_dest(dest);
+    let comp_bits = encode_comp(comp);
+    let jump_bits = encode_jump(jump);
     0b1110_0000_0000_0000 | comp_bits | dest_bits | jump_bits
 }
 
-pub fn write_dest(dest: Option<&str>) -> u16 {
+
+pub fn encode_dest(dest: Option<&str>) -> u16 {
     match dest {
         None => 0b0000_0000_0000_0000,
         Some("M") => 0b0000_0000_0000_1000,
@@ -48,7 +37,8 @@ pub fn write_dest(dest: Option<&str>) -> u16 {
     }
 }
 
-pub fn write_comp(comp: &str) -> u16 {
+
+pub fn encode_comp(comp: &str) -> u16 {
     match comp {
         "0" => 0b0000_1010_1000_0000,
         "1" => 0b0000_1111_1100_0000,
@@ -92,7 +82,8 @@ pub fn write_comp(comp: &str) -> u16 {
     }
 }
 
-pub fn write_jump(jump: Option<&str>) -> u16 {
+
+pub fn encode_jump(jump: Option<&str>) -> u16 {
     match jump {
         None => 0b0000_0000_0000_0000,
         Some("JGT") => 0b0000_0000_0000_0001,
