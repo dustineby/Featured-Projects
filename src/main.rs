@@ -5,7 +5,8 @@ use anyhow::Result;
 use anyhow::anyhow;
 
 
-// main fn
+// main fn, pulls env args, checks for correct count,
+// creates new file, then runs the assembler
 fn main()  -> Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() != 2 {

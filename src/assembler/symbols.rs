@@ -7,6 +7,7 @@ pub struct SymbolTable {
 
 impl SymbolTable {
 
+    // spawn with pointer at 0 and immediately add predefined labels
     pub fn new() -> Self {
         let mut sym_table = SymbolTable {
             symbols: HashMap::new(),
@@ -16,6 +17,9 @@ impl SymbolTable {
         sym_table
     }
 
+    // half pass to find labels for loop pointers, add to table, and remove
+    // count lines to determine where to point label calls
+    // also delete those labels by not adding them to output vector
     pub fn build_labels(&mut self, lines: &[String]) -> Vec<String> {
         let mut no_labels = Vec::new();
         
@@ -34,6 +38,8 @@ impl SymbolTable {
         no_labels
     }
 
+    // half pass to find variables and label pointers, 
+    // and change them to the necessary address
     pub fn resolve_vars(&mut self, lines: Vec<String>) -> Vec<String> {
         self.symbol_pointer = 16;
         let mut post_vars = Vec::new();
