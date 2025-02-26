@@ -14,7 +14,7 @@ pub fn parse_asm(asm_line: &str) -> Result<Instruction, String> {
 
 pub fn parse_addr(line: &str) -> Instruction {
     let value = line[1..].parse::<u16>();
-    Instruction::AInstruction(value.expect("Err23"))
+    Instruction::AInstruction(value.expect("Err"))
 }
 
 

@@ -81,12 +81,10 @@ impl SymbolTable {
             ("KBD", 24576),
         ];
 
-        // Insert R0-R15
         for val in 0..16 {
             self.symbols.insert(format!("R{}", val), val);
         }
 
-        // Insert others
         for &(symbol, addr) in &predefined {
             self.symbols.insert(symbol.to_string(), addr);
         }
