@@ -1,0 +1,99 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    // Input mux
+    // Looks at instruction MSB to determine if A or C instruction
+    // If A instruction, push through the address to A register
+    // If C instruction, push output of ALU to A register
+    Mux16(a=instruction, b=outALU, sel=instruction[15], out=aMux);
+
+    // Register A control
+    // Want to load A if instruction is A instruction, ins[15]=0 
+    // OR if C instruction ins[15]=1 AND set A ins[5]=1  
+    Not(in=instruction[15], out=aNot);
+    Or(a=instruction[5], b=aNot, out=aCtrl);
+    // Register A
+	ARegister(in=aMux, load=aCtrl, out=aOut, out[0..14]=addressM);
+
+    // A/M mux control
+    And(a=instruction[15], b=instruction[12], out=mCtrl);
+    // Mux for A vs M
+    Mux16(a=aOut, b=inM, sel=mCtrl, out=mMux);
+
+    // Register D control
+    And(a=instruction[15], b=instruction[4], out=dCtrl);
+    // Reg D
+    DRegister(in=outALU, load=dCtrl, out=dOut);
+
+
+    // PC controls block
+
+    // Need to know if output is negative, zero, or positive
+    // outZr and outNg already tell us first 2
+    // NOR both to get a bit outPs telling us if output is positive
+    Or(a=outZr, b=outNg, out=outZN);
+    Not(in=outZN, out=outPs);
+    
+    // Only 3 states possible for output: zero, negative, positive
+    // We also note that our jump bits line up with those states
+
+    // If J[0] = 1, we always jump if output is positive
+    // JGT, JGE, JNE    (& JMP)
+    And(a=instruction[0], b=outPs, out=jmpPs);
+    // If J[1] = 1, we always jump if output is zero
+    // JEQ, JGE, JLE    (& JMP)
+    And(a=instruction[1], b=outZr, out=jmpZr);
+    // If J[2] = 1, we always jump if output is negative
+    // JLT, JNE, JLE    (& JMP)
+    And(a=instruction[2], b=outNg, out=jmpNg);
+
+    // Or all jump logic together
+    Or(a=jmpPs, b=jmpZr, out=jmpOr);
+    Or(a=jmpNg, b=jmpOr, out=pcJmp);
+    // Also must check if incoming instruction is A or C instruction
+    And(a=instruction[15], b=pcJmp, out=pcCtrl);
+
+    // PC chip
+    PC(in=aOut, load=pcCtrl, inc=true, reset=reset, out[0..14]=pc);
+
+
+    // ALU
+    ALU(x=dOut, y=mMux, zx=instruction[11], nx=instruction[10], 
+        zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], 
+        out=outM, out=outALU, zr=outZr, ng=outNg);
+
+
+    // Memory write flag
+    And(a=instruction[15], b=instruction[3], out=writeM);
+}
